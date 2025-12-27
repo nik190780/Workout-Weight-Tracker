@@ -73,27 +73,8 @@ export default function workoutHistory() {
 
 const styles = StyleSheet.create({
     container: {
-        //flex: 1,
         padding: 16,
         justifyContent: "center",
-    },
-    error: {
-        fontSize: 20,
-        fontWeight: "bold",
-        color: "red",
-        textAlign: "center",
-    },
-    textStyle: {
-        fontSize: 25,
-        fontFamily: "Times New Roman",
-        textAlign: "center",
-    },
-    input: {
-        borderWidth: 1,
-        borderColor: "#7b4141",
-        padding: 10,
-        borderRadius: 4,
-        marginBottom: 16,
     },
     list: {
         marginTop: 10,
@@ -104,12 +85,6 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: "bold",
         textAlign: "center",
-    },
-    headerText :  { 
-        fontSize: 15,
-        fontWeight: "bold", 
-        paddingTop: 10
-
     },
     flatlistText: { 
         fontSize: 15,

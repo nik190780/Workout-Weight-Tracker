@@ -69,9 +69,6 @@ export default function workoutWeight() {
 
         try {
             await insertWorkoutWeight(id, weightNumber, repsNumber)
-            //const data = await loadWorkoutsWeight(id)
-            //setWorkoutWeights(data)
-
             setMessage("Workout weight saved!")
             setWorkoutWeight("")
             setReps("")
@@ -79,6 +76,7 @@ export default function workoutWeight() {
         } catch (error) {
             console.error("Failed to save workout weights and reps", error);
             setError("Failed to save workout weights and reps")
+            Keyboard.dismiss()
         }
     }
 

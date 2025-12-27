@@ -2,6 +2,7 @@ import { router, useFocusEffect } from "expo-router";
 import * as SQLite from 'expo-sqlite';
 import { useCallback, useEffect, useState } from "react";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import FancyButton from "../../components/fancyButton";
 
 async function getWorkouts() {
     const db = await SQLite.openDatabaseAsync('gym-tracker.db')
@@ -9,12 +10,6 @@ async function getWorkouts() {
 
      return rows
 }
-
-
-
-
-
-
 
 export default function workouts() {
     const [workouts, setWorkouts] = useState([])
@@ -86,6 +81,13 @@ export default function workouts() {
         return (
             <View style={styles.container}>
                 <Text style={styles.textStyle}>No workouts exist yet.</Text>
+                <FancyButton title="Create Workout Now" onPress={() => { 
+                    router.push({
+                        pathname: "/createWorkout"
+                    })
+                }} >
+
+                </FancyButton>
             </View>
         );
     }

@@ -1,4 +1,4 @@
-import { Tabs } from "expo-router";
+import { Tabs } from 'expo-router';
 
 export default function TabLayout() {
     return(
@@ -17,7 +17,8 @@ export default function TabLayout() {
             name="workoutWeight"
             options={{
                 title: "Reps and Weight",
-                tabBarHideOnKeyboard: true
+                tabBarHideOnKeyboard: true,
+                href: null
             }}/>
             <Tabs.Screen
             name="deleteWorkout"
