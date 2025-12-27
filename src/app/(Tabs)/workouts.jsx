@@ -1,7 +1,7 @@
-import {useCallback, useEffect, useState} from "react";
-import {FlatList, Pressable, StyleSheet, Text, View} from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import * as SQLite from 'expo-sqlite';
+import { useCallback, useEffect, useState } from "react";
+import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
 async function getWorkouts() {
     const db = await SQLite.openDatabaseAsync('gym-tracker.db')

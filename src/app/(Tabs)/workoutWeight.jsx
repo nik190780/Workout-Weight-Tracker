@@ -1,17 +1,10 @@
-import {FlatList, StyleSheet, View, Text, TextInput, Keyboard } from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
 import * as SQLite from "expo-sqlite";
-import { useState, useEffect } from "react";
-import { useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
+import { Keyboard, StyleSheet, Text, TextInput, View } from "react-native";
 import FancyButton from "../../components/fancyButton";
 
-async function loadWorkoutsWeight(id) {
-    const db = await SQLite.openDatabaseAsync('gym-tracker.db')
-    const rows = await db.getAllAsync(
-        'SELECT id, weight, reps, date FROM workoutWeights WHERE workout_id = ?',
-        [id]
-    )
-    return rows
-}
+
 
 async function insertWorkoutWeight(id, weight, reps) {
     const db = await SQLite.openDatabaseAsync('gym-tracker.db')
@@ -33,8 +26,8 @@ async function loadWorkoutName(id) {
 
 
 export default function workoutWeight() {
-    const { id } = useLocalSearchParams();
-    const [workoutName, setWorkoutName] = useState("");
+    const { id } = useLocalSearchParams()
+    const [workoutName, setWorkoutName] = useState("")
     const [workoutWeights, setWorkoutWeights] = useState([]);
     const [workoutWeight, setWorkoutWeight] = useState("")
     const [reps, setReps] = useState("")
@@ -57,20 +50,6 @@ export default function workoutWeight() {
         })()
     }, [id])
 
-    // Load all the workouts associated to the workout
-    useEffect(() => {
-        (async () => {
-            try {
-                const data = await loadWorkoutsWeight(id);
-                setWorkoutWeights(data)
-            }catch (e) {
-                console.error('Failed to load workout weight', e);
-                setError('Failed to load workout weight')
-            } finally {
-                setLoading(false)
-            }
-        })();
-    }, [id]);
 
     async function saveWorkoutWeight() {
         setError(null)
@@ -90,8 +69,8 @@ export default function workoutWeight() {
 
         try {
             await insertWorkoutWeight(id, weightNumber, repsNumber)
-            const data = await loadWorkoutsWeight(id)
-            setWorkoutWeights(data)
+            //const data = await loadWorkoutsWeight(id)
+            //setWorkoutWeights(data)
 
             setMessage("Workout weight saved!")
             setWorkoutWeight("")
@@ -106,17 +85,9 @@ export default function workoutWeight() {
     return (
         <View style={styles.container}>
             <Text style={styles.title}>{workoutName}</Text>
-            <FlatList
-                style={styles.list}
-                data={workoutWeights}
-                keyExtractor={(item) => item.id.toString()}
-                renderItem={({ item }) => (
-                        <Text>
-                            {item.weight} lbs - {item.reps} reps - {item.date}
-                        </Text>
-                    )}
-            />
+            
 
+            <Text style={styles.headerText}> Weight </Text>
             <TextInput
                 style={styles.input}
                 placeholder="Weight"
@@ -124,6 +95,8 @@ export default function workoutWeight() {
                 onChangeText={setWorkoutWeight}
                 keyboardType="numeric"
             />
+
+            <Text style={styles.headerText}> Reps </Text>
             <TextInput
             style={styles.input}
             placeholder="Reps"
@@ -131,10 +104,19 @@ export default function workoutWeight() {
             onChangeText={setReps}
             keyboardType="numeric"
             />
+            
 
             <FancyButton title="Save Changes" onPress={saveWorkoutWeight} />
+            <FancyButton  style={{margin: 10}} title="Workout History" onPress={() => { 
+                router.push({
+                    pathname: "/workoutHistory",
+                    params: { id }
+                })
+            }}
+            />
             {error && <Text style={styles.error}>{error}</Text>}
             {message && <Text style={styles.message}>{message}</Text>}
+
         </View>
     )
 }
@@ -172,5 +154,11 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: "bold",
         textAlign: "center",
+    },
+    headerText :  { 
+        fontSize: 15,
+        fontWeight: "bold", 
+        paddingTop: 10
+
     }
 })
