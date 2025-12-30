@@ -1,17 +1,17 @@
-import {StyleSheet, View, Text, TextInput, Keyboard} from "react-native";
 import * as SQLite from 'expo-sqlite';
 import { useState } from "react";
-import  FancyButton  from "../../components/fancyButton";
+import { Keyboard, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import FancyButton from "../../components/fancyButton";
 
 
-async function insertWorkout(workoutName) {
-    const db = await SQLite.openDatabaseAsync('gym-tracker.db')
-    const result = await db.runAsync(
-        'INSERT INTO workouts (workoutName) VALUES (?)',
-                [workoutName]
-                );
-    return result
-}
+async function insertWorkout(workoutName, selectedDays) {
+    const db = await SQLite.openDatabaseAsync("gym-tracker.db");
+  
+    return await db.runAsync(
+      `INSERT INTO workouts (workoutName, days) VALUES (?, ?)`,
+      [workoutName, JSON.stringify(selectedDays)]
+    )
+  }
 
 
 
@@ -20,36 +20,86 @@ export default function createWorkout() {
     const [workoutName, setWorkoutName] = useState("")
     const [error, setError] = useState(null)
     const [message, setMessage] = useState(null)
-    async function handleSave() {
-        setError(null)
-        setMessage(null)
+    const [selectedDays, setSelectedDays] = useState([]);
 
-        const trimmed = workoutName.trim()
-        if (trimmed.length === 0) {
-            setError("Please enter a workout name.")
-            return
+    const days = [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+      ]
+
+      const toggleDay = (day) => {
+        setSelectedDays((prev) =>
+          prev.includes(day)
+            ? prev.filter((d) => d !== day) 
+            : [...prev, day] 
+        )
+      }
+
+      async function handleSave() {
+        setError(null);
+        setMessage(null);
+      
+        const trimmed = workoutName.trim();
+      
+        if (!trimmed) {
+          setError("Please enter a workout name.");
+          return;
         }
-
+      
+        if (selectedDays.length === 0) {
+          setError("Please select at least one day.");
+          return;
+        }
+      
         try {
-            await insertWorkout(trimmed)
-            setMessage("Workout saved!")
-            setWorkoutName("")
-            Keyboard.dismiss()
+          await insertWorkout(trimmed, selectedDays)
+      
+          setMessage("Workout saved!")
+          setWorkoutName("")
+          setSelectedDays([])
+          Keyboard.dismiss()
         } catch (error) {
-            console.error("Failed to save workout", error)
-            setError("Failed to save workout")
+          console.error("Failed to save workout", error)
+          setError("Failed to save workout")
+          Keyboard.dismiss()
         }
-    }
+      }
 
     return (
         <View style={styles.container}>
-            <Text style={styles.textStyle}>Create A Workout.</Text>
+            <Text style={styles.textStyle}>Create A Workout</Text>
             <TextInput
                 style={styles.input}
-                placeholder="Workout name (e.g. Bench Press)"
                 value={workoutName}
                 onChangeText={setWorkoutName}
             />
+           <View style={styles.daysWrap}>
+                {days.map((day) => {
+                    const isSelected = selectedDays.includes(day);
+
+                    return (
+                        <Pressable
+                        key={day}
+                        onPress={() => toggleDay(day)}
+                        style={({ pressed }) => [
+                            styles.selecteBoxes,
+                            isSelected && styles.selectedBox,
+                            pressed && { opacity: 0.7 },
+                        ]}
+                        >
+                            <Text  numberOfLines={1} ellipsizeMode="clip" style={[styles.dayText, isSelected && styles.selectedText]}>
+                            {day}
+                            </Text>
+                        </Pressable>
+                        );
+                })}
+            </View>
+            
             <FancyButton title="Save Workout" onPress={handleSave} />
             {error && <Text style={styles.error}>{error}</Text>}
             {message && <Text style={styles.message}>{message}</Text>}
@@ -84,5 +134,36 @@ const styles = StyleSheet.create({
         marginTop: 8,
         color: "green",
         textAlign: "center",
-    }
+    },
+    daysWrap: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        gap: 10,
+        marginBottom: 16,
+        justifyContent: "center"
+      },
+      
+      selecteBoxes: {
+        borderWidth: 1,
+        borderColor: "black",
+        paddingVertical: 10,
+        paddingHorizontal: 14,
+        borderRadius: 8,
+
+      },
+      
+      selectedBox: {
+        backgroundColor: "green",
+        borderColor: "green",
+      },
+      
+      dayText: {
+        color: "black",
+      },
+      
+      selectedText: {
+        color: "white",
+        //fontWeight: "bold",
+      },
+      
 })

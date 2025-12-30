@@ -14,12 +14,13 @@ export default function TabLayout() {
              title: "Create Workout"
             }}/>
             <Tabs.Screen
-            name="workoutWeight"
+            name="exercises"
             options={{
-                title: "Reps and Weight",
+                title: "Exercises",
                 tabBarHideOnKeyboard: true,
                 href: null
             }}/>
+            
             <Tabs.Screen
             name="deleteWorkout"
             options={{

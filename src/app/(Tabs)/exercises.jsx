@@ -1,26 +1,23 @@
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import * as SQLite from "expo-sqlite";
-import { useEffect, useState } from "react";
-import { Keyboard, StyleSheet, Text, TextInput, View } from "react-native";
+import { useCallback, useEffect, useState } from "react";
+import { FlatList, StyleSheet, Text, View } from "react-native";
 import FancyButton from "../../components/fancyButton";
 
 
-
-async function insertWorkoutWeight(id, weight, reps) {
+async function loadExercises(workoutId) { 
     const db = await SQLite.openDatabaseAsync('gym-tracker.db')
-    const result = await db.runAsync(
-        'INSERT INTO workoutWeights (workout_id, weight, reps) VALUES (?, ?, ?)',
-        [id, weight, reps],
-        );
-
-    return result
+    const rows = await db.getAllAsync('SELECT * FROM exercises WHERE workout_id = ?', 
+        [workoutId]
+    )
+    return rows
 }
 
 async function loadWorkoutName(id) {
     const db = await SQLite.openDatabaseAsync('gym-tracker.db')
     const row = await db.getFirstAsync('SELECT workoutName FROM workouts WHERE id = ?',
         [id]
-    );
+    )
     return row?.workoutName ?? ""
 }
 
@@ -28,9 +25,7 @@ async function loadWorkoutName(id) {
 export default function workoutWeight() {
     const { id } = useLocalSearchParams()
     const [workoutName, setWorkoutName] = useState("")
-    const [workoutWeights, setWorkoutWeights] = useState([]);
-    const [workoutWeight, setWorkoutWeight] = useState("")
-    const [reps, setReps] = useState("")
+    const [exercises, setExercises] = useState([])
     const [error, setError] = useState(null)
     const [loading, setLoading] = useState(true)
     const [message, setMessage] = useState(null)
@@ -50,61 +45,44 @@ export default function workoutWeight() {
         })()
     }, [id])
 
+    // Get all the exercises associated to workout
+    useFocusEffect(useCallback(() => { 
+        (async () => { 
+            try {
+                const exercises = await loadExercises(id)
+                setExercises(exercises)
+            } catch(e) { 
+                console.error("Failed to load exercises", e)
+                setError("Failed to load exercises")
+            }
+        }) ()
+    }, [])
+)
 
-    async function saveWorkoutWeight() {
-        setError(null)
-        const trimmedWorkoutWeight = workoutWeight.trim()
-        const trimmedReps = reps.trim()
-        if (!trimmedWorkoutWeight || !trimmedReps) {
-            setError("Please enter Both workout weight and reps")
-            return
-        }
-        const weightNumber = parseFloat(trimmedWorkoutWeight)
-        const repsNumber = parseInt(trimmedReps, 10)
 
-        if (Number.isNaN(weightNumber) || Number.isNaN(repsNumber)) {
-            setError("Weight and Reps Need to be a number")
-            return
-        }
-
-        try {
-            await insertWorkoutWeight(id, weightNumber, repsNumber)
-            setMessage("Workout weight saved!")
-            setWorkoutWeight("")
-            setReps("")
-            Keyboard.dismiss()
-        } catch (error) {
-            console.error("Failed to save workout weights and reps", error);
-            setError("Failed to save workout weights and reps")
-            Keyboard.dismiss()
-        }
-    }
 
     return (
         <View style={styles.container}>
             <Text style={styles.title}>{workoutName}</Text>
-            
+            <FlatList
+                data={exercises}
+                keyExtractor={(item) => item.id.toString()}
+                renderItem={({ item }) => (
+                    <Text style={styles.flatlistText}>
+                        {item.exercise_name} - {item.weight}Lbs - {item.reps}
+                    </Text>
+                )}
+            >
 
-            <Text style={styles.headerText}> Weight </Text>
-            <TextInput
-                style={styles.input}
-                placeholder="Weight"
-                value={workoutWeight}
-                onChangeText={setWorkoutWeight}
-                keyboardType="numeric"
+            </FlatList>
+
+            <FancyButton  style={{margin: 10}} title="Create Exercise" onPress={() => {
+                router.push({
+                    pathname: "/createExercises",
+                    params: { id }
+                })
+            }} 
             />
-
-            <Text style={styles.headerText}> Reps </Text>
-            <TextInput
-            style={styles.input}
-            placeholder="Reps"
-            value={reps}
-            onChangeText={setReps}
-            keyboardType="numeric"
-            />
-            
-
-            <FancyButton title="Save Changes" onPress={saveWorkoutWeight} />
             <FancyButton  style={{margin: 10}} title="Workout History" onPress={() => { 
                 router.push({
                     pathname: "/workoutHistory",
@@ -158,5 +136,15 @@ const styles = StyleSheet.create({
         fontWeight: "bold", 
         paddingTop: 10
 
+    }, 
+    flatlistText: { 
+        fontSize: 15,
+        padding: 10,
+        borderWidth: 1,
+        borderColor: "Black",
+        borderRadius: 100,
+        margin: 10,
+        minWidth: 50,
+       
     }
 })

@@ -1,7 +1,7 @@
 import { router, useFocusEffect } from "expo-router";
 import * as SQLite from 'expo-sqlite';
 import { useCallback, useEffect, useState } from "react";
-import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { LayoutAnimation, Platform, Pressable, StyleSheet, Text, UIManager, View } from "react-native";
 import FancyButton from "../../components/fancyButton";
 
 async function getWorkouts() {
@@ -15,6 +15,40 @@ export default function workouts() {
     const [workouts, setWorkouts] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
+    const [dayPressed, setDayPressed] = useState([])
+
+    useEffect(() => {
+        if (Platform.OS === "android") {
+          UIManager.setLayoutAnimationEnabledExperimental?.(true);
+        }
+      }, [])
+
+    const togglePress = (day) => { 
+       LayoutAnimation.configureNext({
+            duration: 220,
+            update: { type: LayoutAnimation.Types.easeInEaseOut },
+            create: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
+            delete: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
+        })
+
+        setDayPressed((prev) => 
+        prev.includes(day)
+            ? prev.filter((d) => d !== day) 
+            : [...prev, day] 
+        )
+    }
+    const days = [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+      ]
+
+      
+
 
     useEffect(() => {
         (async () => {
@@ -93,36 +127,78 @@ export default function workouts() {
     }
 
     return (
-        <View style={styles.container}>
-                <FlatList
-                    data={workouts}
-                    keyExtractor={(item) => item.id.toString()}
-                    style={styles.flatListContainer}
-                    renderItem={({ item }) => (
-                        <Pressable
-                        onPress={() =>
-                            router.push({
-                               pathname: "/workoutWeight",
-                                params: { id: item.id}
-                            })
-                            }
-                        style={styles.pressableContainer}
-                        >
-                            <Text style={styles.textStyle}>
-                                {item.workoutName} - {item.date}
-                            </Text>
-                        </Pressable>
-                    )}
-                />
-        </View>
+        <View style={[styles.container, { flex: 1 }]}>
+          {days.map((day) => {
+            const isPressed = dayPressed.includes(day);
+            
+            const workoutsForDay = workouts.filter((w) => {
+              try {
+                const workoutDays = JSON.parse(w.days ?? "[]"); // convert string -> array
+                return Array.isArray(workoutDays) && workoutDays.includes(day);
+              } catch {
+                return false;
+              }
+            });
+      
+            return (
+              <View key={day} style={{ marginBottom: 12 }}>
+                <Pressable
+                    onPress={() => { 
+                        togglePress(day)
+                    }}
+                    style={styles.selecteBoxes}
+                >
+                    <View style={styles.collapsedContainer}>
+                        <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 2 }}>
+                            {day}
+                        </Text>
+                        <Text style={{ fontSize: 20 }}>{isPressed ? "▾" : "▸"}</Text>
+                    </View>
+                </Pressable>
+      
+                {isPressed && (
+          <View style={{ marginTop: 8 }}>
+            {workoutsForDay.length === 0 ? (
+              <Text style={{ opacity: 0.6, textAlign: "center" }}>No workouts</Text>
+            ) : (
+              workoutsForDay.map((w) => (
+                <Pressable
+                  key={`${day}-${w.id}`}
+                  style={styles.innerContainer}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/exercises",
+                      params: { id: w.id },
+                    })
+                  }
+                >
+                  <Text style={styles.textStyle}>{w.workoutName}</Text>
+                </Pressable>
+              ))
+            )}
+          </View>
+        )}
+      </View>
+    );
+  })}
+</View>
     )
 }
+      
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
         padding: 16,
-        justifyContent: "center",
+        justifyContent: "top",
+    },
+    innerContainer: { 
+        padding: 10, 
+        margin: 15,
+        alignItems: "center",
+        borderColor: "black",
+        borderWidth: 1,
+        borderRadius: 100,
+        
     },
     error: {
         fontSize: 20,
@@ -143,11 +219,19 @@ const styles = StyleSheet.create({
       padding: 16,
       marginBottom: 12,
     },
-    flatListContainer: {
-      padding: 16,
+    collapsedContainer: { 
+        flexDirection: "row",
+        justifyContent: "space-between",
+        width: "100%"
+    },
+    selecteBoxes: {
+        borderWidth: 1,
+        borderColor: "black",
+        paddingVertical: 10,
+        paddingHorizontal: 14,
+        borderRadius: 8,
 
-
-    }
+      },
 
 
 })
