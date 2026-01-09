@@ -1,1 +1,1 @@
-Mobile app developed for both ios and androide using react native and expo (Still in development)
+Mobile app developed for both iOS and Android using react native and Expo (Still in development)
