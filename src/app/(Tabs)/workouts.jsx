@@ -1,8 +1,9 @@
 import { router, useFocusEffect } from "expo-router";
 import * as SQLite from 'expo-sqlite';
 import { useCallback, useEffect, useState } from "react";
-import { LayoutAnimation, Platform, Pressable, StyleSheet, Text, UIManager, View } from "react-native";
+import { LayoutAnimation, Platform, Pressable, ScrollView, StyleSheet, Text, UIManager, View } from "react-native";
 import FancyButton from "../../components/fancyButton";
+
 
 async function getWorkouts() {
     const db = await SQLite.openDatabaseAsync('gym-tracker.db')
@@ -157,26 +158,39 @@ export default function workouts() {
                 </Pressable>
       
                 {isPressed && (
+        <ScrollView>
           <View style={{ marginTop: 8 }}>
             {workoutsForDay.length === 0 ? (
-              <Text style={{ opacity: 0.6, textAlign: "center" }}>No workouts</Text>
+                <Pressable
+                    onPress={() => {
+                        router.push({
+                            pathname: "/createWorkout",
+                            params: { selectedDay: day } 
+                        })
+                        
+                    }}
+                >
+                    <Text style={{ opacity: 0.8, textAlign: "center", color: "blue" }}>No workouts! Press me to get started</Text>
+              </Pressable>
             ) : (
               workoutsForDay.map((w) => (
-                <Pressable
-                  key={`${day}-${w.id}`}
-                  style={styles.innerContainer}
-                  onPress={() =>
-                    router.push({
-                      pathname: "/exercises",
-                      params: { id: w.id },
-                    })
-                  }
-                >
-                  <Text style={styles.textStyle}>{w.workoutName}</Text>
-                </Pressable>
+                
+                    <Pressable
+                    key={`${day}-${w.id}`}
+                    style={styles.innerContainer}
+                    onPress={() =>
+                        router.push({
+                        pathname: "/exercises",
+                        params: { id: w.id },
+                        })
+                    }
+                    >
+                    <Text style={styles.textStyle}>{w.workoutName}</Text>
+                    </Pressable>
               ))
             )}
           </View>
+        </ScrollView>
         )}
       </View>
     );

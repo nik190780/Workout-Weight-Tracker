@@ -9,7 +9,13 @@
       "distribution": "internal"
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EAS_BUILD_DISABLE_MAVEN_CACHE": "1"
+      }
     },
     "production": {
       "autoIncrement": true

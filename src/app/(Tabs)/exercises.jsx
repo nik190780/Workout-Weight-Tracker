@@ -23,7 +23,7 @@ async function loadWorkoutName(id) {
 
 
 export default function workoutWeight() {
-    const { id } = useLocalSearchParams()
+    const { id, createdWorkout } = useLocalSearchParams()
     const [workoutName, setWorkoutName] = useState("")
     const [exercises, setExercises] = useState([])
     const [error, setError] = useState(null)
@@ -36,7 +36,13 @@ export default function workoutWeight() {
     useEffect( () => {
         (async () => {
             try {
-                const name = await loadWorkoutName(id)
+                let name = await loadWorkoutName(id)
+                console.log({"Database Name": name}, )
+                console.log({"Name coming from created Workout": createdWorkout})
+                
+                if (name === "") 
+                    name = createdWorkout
+
                 setWorkoutName(name)
             } catch(e) {
                 console.error("Failed to load workout name", e)
