@@ -52,18 +52,26 @@ export default function workoutWeight() {
     }, [id])
 
     // Get all the exercises associated to workout
-    useFocusEffect(useCallback(() => { 
-        (async () => { 
+    useFocusEffect(
+        useCallback(() => {
+          let isActive = true;
+      
+          (async () => {
             try {
-                const exercises = await loadExercises(id)
-                setExercises(exercises)
-            } catch(e) { 
-                console.error("Failed to load exercises", e)
-                setError("Failed to load exercises")
+              if (!id) return
+              const exercises = await loadExercises(id)
+              if (isActive) setExercises(exercises)
+            } catch (e) {
+              console.error("Failed to load exercises", e)
+              if (isActive) setError("Failed to load exercises")
             }
-        }) ()
-    }, [])
-)
+          })()
+      
+          return () => {
+            isActive = false;
+          }
+        }, [id])
+      )
 
 
 
@@ -85,17 +93,17 @@ export default function workoutWeight() {
             <FancyButton  style={{margin: 10}} title="Create Exercise" onPress={() => {
                 router.push({
                     pathname: "/createExercises",
-                    params: { id }
+                    params: { id, nameFromWorkout: workoutName }
                 })
             }} 
             />
-            <FancyButton  style={{margin: 10}} title="Workout History" onPress={() => { 
+            {/**<FancyButton  style={{margin: 10}} title="Workout History" onPress={() => { 
                 router.push({
                     pathname: "/workoutHistory",
                     params: { id }
                 })
             }}
-            />
+        /> **/}
             {error && <Text style={styles.error}>{error}</Text>}
             {message && <Text style={styles.message}>{message}</Text>}
 

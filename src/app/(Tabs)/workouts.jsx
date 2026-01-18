@@ -2,7 +2,6 @@ import { router, useFocusEffect } from "expo-router";
 import * as SQLite from 'expo-sqlite';
 import { useCallback, useEffect, useState } from "react";
 import { LayoutAnimation, Platform, Pressable, ScrollView, StyleSheet, Text, UIManager, View } from "react-native";
-import FancyButton from "../../components/fancyButton";
 
 
 async function getWorkouts() {
@@ -112,20 +111,7 @@ export default function workouts() {
     }
 
 
-    if (workouts.length === 0) {
-        return (
-            <View style={styles.container}>
-                <Text style={styles.textStyle}>No workouts exist yet.</Text>
-                <FancyButton title="Create Workout Now" onPress={() => { 
-                    router.push({
-                        pathname: "/createWorkout"
-                    })
-                }} >
-
-                </FancyButton>
-            </View>
-        );
-    }
+    
 
     return (
         <View style={[styles.container, { flex: 1 }]}>

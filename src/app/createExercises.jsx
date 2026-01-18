@@ -23,6 +23,16 @@ async function loadWorkoutName(workoutId) {
     return row?.workoutName ?? "No Name"
 }
 
+async function getWorkoutId(workoutNameFromCreation) { 
+    const db = await SQLite.openDatabaseAsync('gym-tracker.db')
+    const row = await db.getFirstAsync(
+        'SELECT id FROM workouts WHERE workoutName = ?',
+        [workoutNameFromCreation]
+    )
+    return row?.id ?? null
+}
+
+    
 
 export default function createExercises () { 
     const [reps, setReps] = useState(0)
@@ -31,9 +41,25 @@ export default function createExercises () {
     const [workoutName, setWorkoutName] = useState("")
     const [message, setMessage] = useState(null)
     const [error, setError] = useState(null)
+    const [workoutIdFromCreation, setWorkoutIdFromCreation] = useState(null)
 
     // Get the workout id passed from exercises
-    const { id } = useLocalSearchParams()
+    const { id, nameFromWorkout } = useLocalSearchParams()
+    useEffect(() => {
+        if (id) return;                 // already have an id, nothing to do
+        if (!nameFromWorkout) return;   // no name to look up
+      
+        (async () => {
+          try {
+            const foundId = await getWorkoutId(nameFromWorkout)
+            setWorkoutIdFromCreation(foundId)
+          } catch (e) {
+            console.error("Failed to get workout id", e)
+          }
+        })()
+      }, [id, nameFromWorkout])
+
+      const workoutId = id ?? workoutIdFromCreation
 
     // function to save the exercise onces the user press the save button
     async function saveExercise () { 
@@ -53,8 +79,11 @@ export default function createExercises () {
         }
 
         try {
-
-            await saveExercises(id, exerciseName, weight, reps)
+            if (!workoutId) {
+                setError("Workout not loaded yet.")
+                return
+              }
+            await saveExercises(workoutId, exerciseName, weight, reps)
             setMessage("Exercise saved!")
             setExerciseName("")
             setWeight("")
@@ -66,17 +95,18 @@ export default function createExercises () {
         }
     }
 
-    useEffect(() => { 
-        (async () => { 
-            try {
-                console.log(id)
-                const workoutName = await loadWorkoutName(id)
-                setWorkoutName(workoutName)
-            } catch (e) { 
-                console.error('Failed to load workout name', e)
-            }
-        }) ()
-    }, [id])
+    useEffect(() => {
+        if (!workoutId) return
+      
+        (async () => {
+          try {
+            const name = await loadWorkoutName(workoutId)
+            setWorkoutName(name)
+          } catch (e) {
+            console.error("Failed to load workout name", e)
+          }
+        })()
+      }, [workoutId])
 
     return (
         <View>
