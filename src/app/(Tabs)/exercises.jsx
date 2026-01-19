@@ -2,7 +2,10 @@ import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import * as SQLite from "expo-sqlite";
 import { useCallback, useEffect, useState } from "react";
 import { FlatList, StyleSheet, Text, View } from "react-native";
+import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import FancyButton from "../../components/fancyButton";
+
+
 
 
 async function loadExercises(workoutId) { 
@@ -22,7 +25,10 @@ async function loadWorkoutName(id) {
 }
 
 
+
+
 export default function workoutWeight() {
+    const ACTION_WIDTH = 280
     const { id, createdWorkout } = useLocalSearchParams()
     const [workoutName, setWorkoutName] = useState("")
     const [exercises, setExercises] = useState([])
@@ -31,7 +37,12 @@ export default function workoutWeight() {
     const [message, setMessage] = useState(null)
 
 
-
+    const deleteExercise = async (exerciseId) => {
+        const db = await SQLite.openDatabaseAsync("gym-tracker.db")
+        await db.runAsync("DELETE FROM exercises WHERE id = ?", [exerciseId])
+        setExercises((prev) => prev.filter((e) => e.id !== exerciseId))
+    
+    }
     // Get the workoutName
     useEffect( () => {
         (async () => {
@@ -73,18 +84,39 @@ export default function workoutWeight() {
         }, [id])
       )
 
-
+      
+      const renderRightActions = () => {
+        return (
+            <View style={[styles.rightAction, { width: ACTION_WIDTH }]}>
+                <Text style={styles.rightActionText}>Delete</Text>
+            </View>
+        )
+      }
 
     return (
+        
         <View style={styles.container}>
             <Text style={styles.title}>{workoutName}</Text>
             <FlatList
                 data={exercises}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item }) => (
-                    <Text style={styles.flatlistText}>
-                        {item.exercise_name} - {item.weight}Lbs - {item.reps}
-                    </Text>
+                    <View style={styles.rowWrapper}>
+                        <Swipeable
+                            renderRightActions={renderRightActions}
+                            rightThreshold={ACTION_WIDTH * 0.7}
+                            onSwipeableOpen={(direction) => {
+                                console.log("opened:", direction);
+                                if (direction === "left") deleteExercise(item.id);
+                            }}
+                        >
+                        <View style={styles.rowContent}>
+                            <Text style={styles.rowText}>
+                            {item.exercise_name} - {item.weight}Lbs - {item.reps} Reps
+                            </Text>
+                        </View>
+                        </Swipeable>
+                    </View>
                 )}
             >
 
@@ -97,6 +129,7 @@ export default function workoutWeight() {
                 })
             }} 
             />
+            {/** TODO: Need to figure out if Im keeping workout history and how I want history to look like. */}
             {/**<FancyButton  style={{margin: 10}} title="Workout History" onPress={() => { 
                 router.push({
                     pathname: "/workoutHistory",
@@ -160,5 +193,33 @@ const styles = StyleSheet.create({
         margin: 10,
         minWidth: 50,
        
-    }
+    },
+    row: { paddingHorizontal: 6 },
+    rowWrapper: {
+        marginVertical: 8,
+        borderRadius: 18,
+        overflow: "hidden",      // ✅ CLIPS the red action to the row
+      },
+      
+      rowContent: {
+        backgroundColor: "white",
+        paddingVertical: 14,
+        paddingHorizontal: 16,
+      },
+      
+      rowText: {
+        fontSize: 15,
+      },
+      rightAction: {
+        backgroundColor: "red",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100%",          // ✅ fills row height
+      },
+      
+      rightActionText: {
+        color: "white",
+        fontWeight: "bold",
+        fontSize: 16,
+      },
 })

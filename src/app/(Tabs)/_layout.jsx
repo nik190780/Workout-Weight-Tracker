@@ -1,7 +1,10 @@
+
 import { Tabs } from 'expo-router';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export default function TabLayout() {
     return(
+    <GestureHandlerRootView>
         <Tabs>
             <Tabs.Screen
             name="workouts"
@@ -18,14 +21,17 @@ export default function TabLayout() {
             options={{
                 title: "Exercises",
                 tabBarHideOnKeyboard: true,
-                href: null
+                href: null,
+                
             }}/>
             
             <Tabs.Screen
             name="deleteWorkout"
             options={{
-                title: "Delete Workout"
+                title: "Delete Workout",
+                animation: "fade"
             }}/>
         </Tabs>
+    </GestureHandlerRootView>
     )
 }

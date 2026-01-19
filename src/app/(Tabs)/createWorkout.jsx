@@ -1,6 +1,6 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import * as SQLite from 'expo-sqlite';
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Keyboard, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import FancyButton from "../../components/fancyButton";
 
@@ -76,6 +76,7 @@ export default function createWorkout() {
           await insertWorkout(trimmed, selectedDays)
           
           setMessage("Workout saved!")
+          setWorkoutName("")
           setSelectedDays([])
           Keyboard.dismiss()
           setSuccess(true)
@@ -86,16 +87,31 @@ export default function createWorkout() {
           setSuccess(false)
         }
       }
-
-      useEffect(() => {
-        if (success) {
-          router.push({
-            pathname: "/exercises",
-            params: { createdWorkout: workoutName }
-          })
+      
+      // Clean up what the user selected or typed if they leave the screen
+      useFocusEffect(useCallback(() => { 
+        return () =>  { 
+          setMessage("")
           setWorkoutName("")
+          setSelectedDays([])
+
         }
-      }, [success])
+      }, [])
+      )
+
+
+
+      // TODO: Figure out if I want to keep this or not.
+
+      // useEffect(() => {
+      //   if (success) {
+      //     router.push({
+      //       pathname: "/exercises",
+      //       params: { createdWorkout: workoutName }
+      //     })
+      //     setWorkoutName("")
+      //   }
+      // }, [success])
 
     return (
         <View style={styles.container}>
