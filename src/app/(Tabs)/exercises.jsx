@@ -1,7 +1,7 @@
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import * as SQLite from "expo-sqlite";
 import { useCallback, useEffect, useState } from "react";
-import { FlatList, StyleSheet, Text, View } from "react-native";
+import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import FancyButton from "../../components/fancyButton";
 
@@ -48,9 +48,7 @@ export default function workoutWeight() {
         (async () => {
             try {
                 let name = await loadWorkoutName(id)
-                console.log({"Database Name": name}, )
-                console.log({"Name coming from created Workout": createdWorkout})
-                
+
                 if (name === "") 
                     name = createdWorkout
 
@@ -93,6 +91,14 @@ export default function workoutWeight() {
         )
       }
 
+
+      const goToExerciseEdit = (exerciseId) => { 
+        router.push({
+            pathname: '/exerciseEdit',
+            params: { workoutId: id, exerciseId: String(exerciseId), nameFromWorkout: workoutName },
+        })
+      }
+
     return (
         
         <View style={styles.container}>
@@ -110,11 +116,15 @@ export default function workoutWeight() {
                                 if (direction === "left") deleteExercise(item.id);
                             }}
                         >
+                            <Pressable onPress={() => { 
+                                goToExerciseEdit(item.id)
+                            }}>
                         <View style={styles.rowContent}>
-                            <Text style={styles.rowText}>
-                            {item.exercise_name} - {item.weight}Lbs - {item.reps} Reps
-                            </Text>
+                                <Text style={styles.rowText}>
+                                {item.exercise_name} - {item.weight}Lbs - {item.reps} Reps
+                                </Text>
                         </View>
+                            </Pressable>
                         </Swipeable>
                     </View>
                 )}
@@ -198,7 +208,7 @@ const styles = StyleSheet.create({
     rowWrapper: {
         marginVertical: 8,
         borderRadius: 18,
-        overflow: "hidden",      // ✅ CLIPS the red action to the row
+        overflow: "hidden",      
       },
       
       rowContent: {
@@ -214,7 +224,7 @@ const styles = StyleSheet.create({
         backgroundColor: "red",
         justifyContent: "center",
         alignItems: "center",
-        height: "100%",          // ✅ fills row height
+        height: "100%",        
       },
       
       rightActionText: {
